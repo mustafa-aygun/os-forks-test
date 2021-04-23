@@ -4,6 +4,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <signal.h>
+#include <sys/wait.h>
 
 int *selectionSort(int[], int);
 int *insertionSort(int[], int);
@@ -13,147 +14,157 @@ void signalHandlerUSR2(int);
 void childOperations(int);
 void forks(int);
 
-int waitTillDay5 = 0;
+int waitTillDay5 = 1;
+time_t signalTime;
 
 struct Data
 {
-  int number;
-  int *array;
+    int number;
+    int *array;
 };
 
 int main(int argc, char const *argv[])
 {
-  srand(time(0));
-  int n, m, i;
-  printf("Welcome to app\n");
-  printf("Enter number of file: ");
-  scanf("%d", &n);
-  printf("Enter size of numbers: ");
-  scanf("%d", &m);
+    srand(time(0));
+    int n, m, i;
+    printf("Welcome to app\n");
+    printf("Enter number of file: ");
+    scanf("%d", &n);
+    printf("Enter size of numbers: ");
+    scanf("%d", &m);
 
-  createFile(m, n);
+    createFile(m, n);
 
-  forks(n);
+    forks(n);
 
-  printf("Back\n");
-  return 0;
+    printf("Back\n");
+    return 0;
 }
 
 void forks(int n)
 {
+    int i;
+    pid_t pid[n];
+    for (i = 0; i < n; i++)
+    {
+        signal(SIGUSR2, signalHandlerUSR2);
+        signal(SIGUSR1, signalHandlerUSR1);
+        pid[i] = fork();
+        
+        if (pid[i] == 0)
+        {
+            
+            int a = getpid();
+            printf("%d ",a);
+            while (waitTillDay5)
+                sleep(1);
+            time(&signalTime);
+            childOperations(i);
+            _exit(0);
+        }
+    }
+    for (i = 0; i < n; i++)
+    {
+        if (pid[i] % 2 == 0)
+        {
 
-  int i;
-  pid_t pid[n];
-  for (i = 0; i < n; i++)
-  {
-    if ((pid[i] = fork()) == 0)
-    {
-      printf("I am here\n");
-      signal(SIGUSR2, signalHandlerUSR2);
-      signal(SIGUSR1, signalHandlerUSR1);
-      while (waitTillDay5)
-        sleep(1);
-      childOperations(i);
-      exit(1);
+            kill(pid[i], SIGUSR2);
+        }
+        else
+        {
+            kill(pid[i], SIGUSR1);
+        }
     }
-  }
-  for (i = 0; i < n; i++)
-  {
-    if (pid[i] % 2 == 0)
-    {
 
-      kill(pid[i], SIGUSR2);
-    }
-    else
+    for (int i = 0; i < n; i++)
     {
-      kill(pid[i], SIGUSR1);
+        wait(NULL);
     }
-  }
 }
 
 void createFile(int m, int n)
 {
-  FILE *myFile;
-  char filename[20];
-  int i, j;
-  for (i = 0; i < n; i++)
-  {
-
-    sprintf(filename, "input%d.txt", i);
-    myFile = fopen(filename, "w");
-    fprintf(myFile, "%d\n", m);
-    for (j = 0; j < m; j++)
+    FILE *myFile;
+    char filename[20];
+    int i, j;
+    for (i = 0; i < n; i++)
     {
-      fprintf(myFile, "%d ", rand() % m);
+
+        sprintf(filename, "input%d.txt", i);
+        myFile = fopen(filename, "w");
+        fprintf(myFile, "%d\n", m);
+        for (j = 0; j < m; j++)
+        {
+            fprintf(myFile, "%d ", rand() % m);
+        }
+        fclose(myFile);
     }
-    fclose(myFile);
-  }
 }
 
 int swap(int *x, int *y)
 {
-  int temp = *x;
-  *x = *y;
-  *y = temp;
+    int temp = *x;
+    *x = *y;
+    *y = temp;
 }
 
 int *selectionSort(int *mylist, int size)
 {
 
-  int i, j, min;
-  for (i = 0; i < size - 1; i++)
-  {
-    min = i;
-    for (j = i + 1; j < size; j++)
+    int i, j, min;
+    for (i = 0; i < size - 1; i++)
     {
-      if (mylist[j] < mylist[min])
-      {
-        min = j;
-      }
+        min = i;
+        for (j = i + 1; j < size; j++)
+        {
+            if (mylist[j] < mylist[min])
+            {
+                min = j;
+            }
+        }
+        swap(&mylist[min], &mylist[i]);
     }
-    swap(&mylist[min], &mylist[i]);
-  }
 
-  return mylist;
+    return mylist;
 }
 
 int *insertionSort(int *myList, int size)
 {
 
-  int i, j, value;
-  for (i = 0; i < size; i++)
-  {
-
-    value = myList[i];
-    for (j = i - 1; - 1 < j; j--)
+    int i, j, value;
+    for (i = 0; i < size; i++)
     {
-      if (myList[j] > value)
-      {
-        myList[j + 1] = myList[j];
-      }
-      else
-      {
-        break;
-      }
+
+        value = myList[i];
+        for (j = i - 1; - 1 < j; j--)
+        {
+            if (myList[j] > value)
+            {
+                myList[j + 1] = myList[j];
+            }
+            else
+            {
+                break;
+            }
+        }
+        myList[j + 1] = value;
     }
-    myList[j + 1] = value;
-  }
-  return myList;
+    return myList;
 }
 
 void signalHandlerUSR1(int signumber)
 {
-  waitTillDay5 = 1;
+    waitTillDay5 = 0;
 }
 
 void signalHandlerUSR2(int signumber)
 {
-  waitTillDay5 = 1;
+    waitTillDay5 = 0;
 }
 
 void childOperations(int fileNum)
-{
-  printf("hadi be brom3");
+{   
+  clock_t startTime, endTime1,endTime2;
   int i = 0, j;
   FILE *myFile;
   char filename[20], filename2[20];
@@ -165,33 +176,45 @@ void childOperations(int fileNum)
 
   if (myFile != NULL)
   {
-    while (i < 2)
-    {
-      if (i == 0)
-      {
-        if (fscanf(myFile, "%d\n", &myData->number) != EOF);
-        i++;
-      }
-      else
-      {
-        myData->array = (int *)malloc(myData->number * sizeof(int));
-        for (j = 0; j < myData->number; j++)
-        {
-          if (fscanf(myFile, "%d ", &myData->array[j]) != EOF);
-          i++;
-        }
-      }
+    if (fscanf(myFile, "%d\n", &myData->number) != EOF)
+    myData->array = (int *)malloc(myData->number * sizeof(int));
+    for (j = 0; j < myData->number; j++){
+      if (fscanf(myFile, "%d ", &myData->array[j]) != EOF);
     }
   }
   fclose(myFile);
 
-  myData->array = selectionSort(myData->array, myData->number);
+  startTime = clock();
+  int pidId = getpid();
+  if (pidId % 2 == 0){
+    myData->array = selectionSort(myData->array, myData->number);
+  }
+  else{
+    myData->array = insertionSort(myData->array, myData->number);
+  }
+  endTime1 = clock(); 
+  int randomSleepTime = rand()%7+1;
+  sleep(randomSleepTime);
+  endTime2 = clock(); 
+  double execTime2 = endTime1-startTime;
+  double execTime = endTime2-startTime;
   sprintf(filename2, "output%d.txt", fileNum);
 
   myFile = fopen(filename2, "w");
   fprintf(myFile, "%d\n", myData->number);
-  for (j = 0; j < myData->number; j++)
-  {
+  for (j = 0; j < myData->number; j++){
     fprintf(myFile, "%d ", myData->array[j]);
   }
+  fprintf(myFile,"\n%lf\n",execTime);  
+  /*fprintf(myFile,"%d",randomSleepTime);  
+  fprintf(myFile,"\n%lf\n",execTime2);  */
+  if (pidId % 2 == 0){
+    fprintf(myFile,"SGUSR2 %s",ctime(&signalTime));
+  }
+  else{
+    fprintf(myFile,"SGUSR1 %s",ctime(&signalTime));
+  }
+    
+
+  fclose(myFile);
 }
