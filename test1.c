@@ -1,29 +1,40 @@
 #include<stdio.h>
 #include<stdlib.h>
+#include<string.h>
+#include<time.h>
 
 int *selectionSort(int[],int);
 int *insertionSort(int[],int);
+void createFile(int, int);
 
 int main(int argc, char const *argv[])
 {   
-    int n;
+    srand(time(0));
+    int n,m;
     printf("Welcome to app\n");
-    printf("Enter n: ");
+    printf("Enter number of file: ");
     scanf("%d",&n);
-    int *mylist = (int*)malloc(n*sizeof(int));
-    mylist[0] = 3;
-    mylist[1] = 9;
-    mylist[2] = 5;
-    mylist[3] = 4;
-    mylist[4] = 6;
+    printf("Enter size of numbers: ");
+    scanf("%d",&m);
     
-    mylist = insertionSort(mylist,n);
-    for (int i = 0; i < n; i++)
-    {
-        printf("%d",mylist[i]);
-    }
+    createFile(m,n);
     
     return 0;
+}
+
+void createFile(int m, int n){
+    FILE *myFile;
+    char filename[20]; 
+    int i,j;
+    for(i = 0; i < n; i++){
+
+        sprintf(filename,"input%d.txt",i);
+        myFile = fopen(filename, "w");
+        fprintf(myFile,"%d\n",m);
+        for(j = 0; j < m; j++){
+            fprintf(myFile,"%d ",rand()%m);
+        }
+    }
 }
 
 int swap(int *x, int *y){
