@@ -6,13 +6,7 @@
 #include <signal.h>
 #include <sys/wait.h>
 
-int *selectionSort(int[], int);
-int *insertionSort(int[], int);
-void createFile(int, int);
-void signalHandlerUSR1(int);
-void signalHandlerUSR2(int);
-void childOperations(int);
-void forks(int);
+
 
 int waitTillDay5 = 1;
 time_t signalTime;
@@ -22,6 +16,23 @@ struct Data
     int number;
     int *array;
 };
+
+struct Output{
+  
+  double execTime;
+  int pidID;
+  char *signal;
+  struct Data *sortedData;  
+};
+
+int *selectionSort(int[], int);
+int *insertionSort(int[], int);
+void createFile(int, int);
+void signalHandlerUSR1(int);
+void signalHandlerUSR2(int);
+void childOperations(int);
+void parentOperation(int,struct Output**);
+void forks(int);
 
 int main(int argc, char const *argv[])
 {
@@ -42,20 +53,22 @@ int main(int argc, char const *argv[])
 }
 
 void forks(int n)
-{
+{   
     int i;
+    struct Output **myResults = (struct Ouput*)malloc(n*sizeof(struct Output*));
+    for(i = 0; i < n; i++){
+      myResults[i] = malloc(sizeof(struct Output));
+      myResults[i]->sortedData = malloc(sizeof(struct Data));
+    }
     pid_t pid[n];
     for (i = 0; i < n; i++)
     {
         signal(SIGUSR2, signalHandlerUSR2);
         signal(SIGUSR1, signalHandlerUSR1);
-        pid[i] = fork();
+        ;
         
-        if (pid[i] == 0)
+        if ((pid[i] = fork()) == 0)
         {
-            
-            int a = getpid();
-            printf("%d ",a);
             while (waitTillDay5)
                 sleep(1);
             time(&signalTime);
@@ -67,7 +80,6 @@ void forks(int n)
     {
         if (pid[i] % 2 == 0)
         {
-
             kill(pid[i], SIGUSR2);
         }
         else
@@ -80,6 +92,12 @@ void forks(int n)
     {
         wait(NULL);
     }
+    
+    for(int k = 0; k < n; k++){
+      myResults[k]->pidID = pid[k];
+      printf("ID: %d\n",myResults[k]->pidID);
+    }
+    parentOperation(n,myResults);
 }
 
 void createFile(int m, int n)
@@ -130,23 +148,17 @@ int *selectionSort(int *mylist, int size)
 
 int *insertionSort(int *myList, int size)
 {
-
     int i, j, value;
-    for (i = 0; i < size; i++)
-    {
-
-        value = myList[i];
-        for (j = i - 1; - 1 < j; j--)
-        {
-            if (myList[j] > value)
-            {
-                myList[j + 1] = myList[j];
-            }
-            else
-            {
-                break;
-            }
+    for (i = 0; i < size; i++){
+      value = myList[i];
+      for (j = i - 1; - 1 < j; j--){
+        if (myList[j] > value){
+          myList[j + 1] = myList[j];
         }
+        else{
+          break;
+        }
+      }
         myList[j + 1] = value;
     }
     return myList;
@@ -217,4 +229,22 @@ void childOperations(int fileNum)
     
 
   fclose(myFile);
+}
+
+void parentOperation(int n,struct Output** myResults){
+
+  int i,j;
+  for(i = 0; i < n; i++){
+    FILE *myFile;
+    char filename[20];
+    sprintf(filename, "output%d.txt", i);
+    myFile = fopen(filename, "r");
+    if (fscanf(myFile, "%d\n", &myResults[i]->sortedData->number) != EOF);
+    for(j = 0; j < myResults[i]->sortedData->number; j++){
+      if (fscanf(myFile, "%d ", &myResults[i]->sortedData->array[j]) != EOF);
+    }/*
+    if(fscanf(myFile,"\n%lf\n",&myResults[i]->execTime) != EOF);
+    if(fscanf(myFile,"%s",myResults[i]->signal) != EOF);*/
+    fclose(myFile);
+  }  
 }
