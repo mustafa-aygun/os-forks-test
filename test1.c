@@ -21,7 +21,7 @@ struct Output{
   
   double execTime;
   int pidID;
-  char *signal;
+  char signal[6][50];
   struct Data *sortedData;  
 };
 
@@ -234,17 +234,52 @@ void childOperations(int fileNum)
 void parentOperation(int n,struct Output** myResults){
 
   int i,j;
-  for(i = 0; i < n; i++){
-    FILE *myFile;
+  double value;
+  FILE *myFile;
+  for(i = 0; i < n; i++){    
     char filename[20];
     sprintf(filename, "output%d.txt", i);
     myFile = fopen(filename, "r");
     if (fscanf(myFile, "%d\n", &myResults[i]->sortedData->number) != EOF);
+    myResults[i]->sortedData->array = (int *)malloc(myResults[i]->sortedData->number*sizeof(int));
     for(j = 0; j < myResults[i]->sortedData->number; j++){
       if (fscanf(myFile, "%d ", &myResults[i]->sortedData->array[j]) != EOF);
-    }/*
+    }
     if(fscanf(myFile,"\n%lf\n",&myResults[i]->execTime) != EOF);
-    if(fscanf(myFile,"%s",myResults[i]->signal) != EOF);*/
+    for(j = 0; j < 6; j++){
+      if(fscanf(myFile,"%s ",myResults[i]->signal[j]) != EOF);
+    }
     fclose(myFile);
   }  
+  int min;
+  struct Output *myTemp;
+  for (i = 0; i < n - 1; i++)
+    {
+        min = i;
+        for (j = i + 1; j < n; j++)
+        {
+            if (myResults[j]->execTime < myResults[min]->execTime)
+            {
+                min = j;
+            }
+        }
+        myTemp = myResults[i];
+        myResults[i] = myResults[min];
+        myResults[min] = myTemp;
+    }
+
+  myFile = fopen("output.txt","w");
+  for(i = 0; i < n; i++){
+    fprintf(myFile,"%d %lf ",myResults[i]->pidID,myResults[i]->execTime);
+    for(j = 0; j < myResults[i]->sortedData->number; j++){
+      fprintf(myFile, "%d ", myResults[i]->sortedData->array[j]);
+    }
+    for(j = 0; j < 6; j++){
+      fprintf(myFile,"%s ",myResults[i]->signal[j]);
+    }
+    fprintf(myFile,"\n");
+  }
+  fclose(myFile);
+
+
 }
