@@ -9,9 +9,7 @@
 int waitTillDay5 = 1;
 time_t signalTime;
 
-struct Output
-{
-
+struct Output{
   double execTime;
   int pidID;
   char signal[50];
@@ -31,8 +29,7 @@ void parentOperationForPipe(int, struct Output **);
 void forks(int);
 void forksAnPipe(int);
 
-int main(int argc, char const *argv[])
-{
+int main(int argc, char const *argv[]){
 
   int n, m, i;
   printf("Welcome to app\n");
@@ -224,15 +221,14 @@ void createFile(int m, int n)
   }
 }
 
-int swap(int *x, int *y)
-{
+int swap(int *x, int *y){
+  
   int temp = *x;
   *x = *y;
   *y = temp;
 }
 
-int *selectionSort(int *mylist, int size)
-{
+int *selectionSort(int *mylist, int size){
 
   int i, j, min;
   for (i = 0; i < size - 1; i++)
@@ -247,12 +243,11 @@ int *selectionSort(int *mylist, int size)
     }
     swap(&mylist[min], &mylist[i]);
   }
-
   return mylist;
 }
 
-int *insertionSort(int *myList, int size)
-{
+int *insertionSort(int *myList, int size){
+
   int i, j, value;
   for (i = 0; i < size; i++)
   {
@@ -273,13 +268,13 @@ int *insertionSort(int *myList, int size)
   return myList;
 }
 
-void signalHandlerUSR1(int signumber)
-{
+void signalHandlerUSR1(int signumber){
+
   waitTillDay5 = 0;
 }
 
-void signalHandlerUSR2(int signumber)
-{
+void signalHandlerUSR2(int signumber){
+  
   waitTillDay5 = 0;
 }
 
@@ -331,11 +326,11 @@ void childOperations(int fileNum)
   fprintf(myFile, "\n%lf\n", execTime);
   if (pidId % 2 == 0)
   {
-    fprintf(myFile, "SGUSR2 %s", ctime(&signalTime));
+    fprintf(myFile, "SIGUSR2 %s", ctime(&signalTime));
   }
   else
   {
-    fprintf(myFile, "SGUSR1 %s", ctime(&signalTime));
+    fprintf(myFile, "SIGUSR1 %s", ctime(&signalTime));
   }
 
   fclose(myFile);
@@ -364,7 +359,7 @@ void childOperationsForPipe(int fileNum, struct Output *myOut)
     }
   }
   char sigTime[25];
-  strcpy(sigTime,ctime(&signalTime));
+  strcpy(sigTime, ctime(&signalTime));
   fclose(myFile);
 
   startTime = clock();
@@ -386,18 +381,17 @@ void childOperationsForPipe(int fileNum, struct Output *myOut)
   char tempSignal[50];
   if (pidId % 2 == 0)
   {
-    
-    strcpy(tempSignal,"SGUSR2 ");
+
+    strcpy(tempSignal, "SIGUSR2 ");
     strcat(tempSignal, sigTime);
-    strcpy(myOut->signal,tempSignal);
+    strcpy(myOut->signal, tempSignal);
   }
   else
   {
 
-    strcpy(tempSignal,"SGUSR1 ");
+    strcpy(tempSignal, "SIGUSR1 ");
     strcat(tempSignal, sigTime);
-    strcpy(myOut->signal,tempSignal);
-
+    strcpy(myOut->signal, tempSignal);
   }
 }
 
@@ -422,7 +416,8 @@ void parentOperation(int n, struct Output **myResults)
     }
     if (fscanf(myFile, "\n%lf\n", &myResults[i]->execTime) != EOF)
       ;
-    while(fgets(myResults[i]->signal,50,myFile));
+    while (fgets(myResults[i]->signal, 50, myFile))
+      ;
     fclose(myFile);
   }
   int min;
@@ -450,7 +445,7 @@ void parentOperation(int n, struct Output **myResults)
     {
       fprintf(myFile, "%d ", myResults[i]->numbers[j]);
     }
-    fprintf(myFile, "%s\n",myResults[i]->signal);
+    fprintf(myFile, "%s\n", myResults[i]->signal);
   }
   fclose(myFile);
 }
@@ -470,7 +465,7 @@ void parentOperationForPipe(int n, struct Output **myResults)
       printf("%d ", myResults[k]->numbers[z]);
     }
   }
-  
+
   for (i = 0; i < n - 1; i++)
   {
     min = i;
@@ -485,8 +480,7 @@ void parentOperationForPipe(int n, struct Output **myResults)
     myResults[i] = myResults[min];
     myResults[min] = myTemp;
   }
-  
-  
+
   FILE *myFile;
   myFile = fopen("output.txt", "w");
   for (i = 0; i < n; i++)
@@ -495,8 +489,8 @@ void parentOperationForPipe(int n, struct Output **myResults)
     for (j = 0; j < myResults[i]->m; j++)
     {
       fprintf(myFile, "%d ", myResults[i]->numbers[j]);
-    } 
-    fprintf(myFile,"%s",myResults[i]->signal);
+    }
+    fprintf(myFile, "%s", myResults[i]->signal);
   }
   fclose(myFile);
 }
