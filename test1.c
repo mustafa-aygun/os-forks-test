@@ -363,8 +363,10 @@ void childOperationsForPipe(int fileNum, struct Output *myOut)
       }
     }
   }
+  char sigTime[25];
+  strcpy(sigTime,ctime(&signalTime));
   fclose(myFile);
-  printf("%d Here", myOut->m);
+
   startTime = clock();
   int pidId = getpid();
   if (pidId % 2 == 0)
@@ -381,6 +383,22 @@ void childOperationsForPipe(int fileNum, struct Output *myOut)
   double execTime = (double)(endTime - startTime) / CLOCKS_PER_SEC + randomSleepTime;
 
   myOut->execTime = execTime;
+  char tempSignal[50];
+  if (pidId % 2 == 0)
+  {
+    
+    strcpy(tempSignal,"SGUSR2 ");
+    strcat(tempSignal, sigTime);
+    strcpy(myOut->signal,tempSignal);
+  }
+  else
+  {
+
+    strcpy(tempSignal,"SGUSR1 ");
+    strcat(tempSignal, sigTime);
+    strcpy(myOut->signal,tempSignal);
+
+  }
 }
 
 void parentOperation(int n, struct Output **myResults)
@@ -452,7 +470,7 @@ void parentOperationForPipe(int n, struct Output **myResults)
       printf("%d ", myResults[k]->numbers[z]);
     }
   }
-  char *ctime(const time_t *signalTime);
+  
   for (i = 0; i < n - 1; i++)
   {
     min = i;
@@ -466,7 +484,6 @@ void parentOperationForPipe(int n, struct Output **myResults)
     myTemp = myResults[i];
     myResults[i] = myResults[min];
     myResults[min] = myTemp;
-    strcpy(myResults[i]->signal,ctime);
   }
   
   
@@ -479,7 +496,7 @@ void parentOperationForPipe(int n, struct Output **myResults)
     {
       fprintf(myFile, "%d ", myResults[i]->numbers[j]);
     } 
-    fprintf(myFile,"%s\n",myResults[i]->signal);
+    fprintf(myFile,"%s",myResults[i]->signal);
   }
   fclose(myFile);
 }
